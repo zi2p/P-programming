@@ -16,9 +16,7 @@ class polynomial {
 private:
     std::map<unsigned int, double> poly;
 public:
-    polynomial()                        // конструктор по умолчанию
-        : poly(0,0)
-    {}
+    polynomial()=default;                        // конструктор по умолчанию
     explicit polynomial(const std::map<unsigned int, double> &p)  // создание
         : poly(p)
     {}
@@ -71,7 +69,7 @@ public:
         return p_rezult;
     }
     polynomial& operator*=(const polynomial &p) {
-        std::vector<int> degree(p.poly.size());
+        std::vector<int> degree;
         for (auto i : p.poly)
             for (auto j : poly)
                 degree.push_back(i.first + j.first);
