@@ -71,9 +71,15 @@ public:
         return p_rezult;
     }
     polynomial& operator*=(const polynomial &p) {
+        std::vector<int> degree(p.poly.size());
         for (auto i : p.poly)
             for (auto j : poly)
-                poly[i.first + j.first] = p.poly.at(i.first) * poly.at(j.first);
+                degree.push_back(i.first + j.first);
+        for (auto i : p.poly)
+            for (auto j : poly) {
+                poly[degree.back()] = p.poly.at(i.first) * poly.at(j.first);
+                degree.pop_back();
+            }
         return *this;
     }
     polynomial operator/(int a) {                             // деление полинома на число
