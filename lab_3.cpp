@@ -6,16 +6,26 @@
 #include <vector>
 #include <sstream>
 #include <set>
+#include <unordered_map>
 
 using namespace std;
 
-void build_a_route(const pugi::xml_node object, map<pair<string, string>, vector<pair<double, double> > > &path) {
+vector<string> result_(string& number) {
+    vector<string> numbers;
+    char symbol;                                            // символ, который разделяет разные маршруты
+    if (number.find(',') != string::npos)            // возвращает положение запятой, npos - конец строки
+        symbol = ',';
+    else symbol = '.';
 
-    string type = object.child("type_of_vehicle").text().as_string();
-    cout<< type;
-    string coordinates = object.child("coordinates").text().as_string();
+    auto cursor = istringstream(number);           //  поток
+    string buffer;                                   // временное хранилище для номера транспорта
+    while (getline(cursor, buffer, symbol))    // кладем в буфер значение взятое с "потока курсор" до "символа" и так каждый раз (символ разделяет номера маршрутов)
+        numbers.push_back(buffer);
+    return numbers;
+}
+
+pair<double, double> result_coordinates(string& coordinates) {
     pair<double, double> stops;
-
     auto i = stops;
     auto cursor = istringstream(coordinates);          // читаем координаты
     string point;
@@ -23,62 +33,27 @@ void build_a_route(const pugi::xml_node object, map<pair<string, string>, vector
     i.first = stod(point);
     getline(cursor, point, ',');
     i.second = stod(point);
-
-    string routes = object.child_value("routes");
-    char symbol;                                            // символ, который разделяет разные маршруты
-    if (routes.find(',') != string::npos)            // возвращает положение запятой, npos - конец строки
-        symbol = ',';
-    else symbol = '.';
-    vector<string> route;
-    cursor = istringstream(routes);          // проходимся по маршрутам
-    string number;                         // номер маршрута
-    while (getline(cursor, number, symbol))
-        route.push_back(number);                         // номера маршрутов
-    for (auto &r: route)
-        path[{type, r}].push_back({i.first, i.second});
+    return {i.first, i.second};
 }
 
-double distant(double x1, double x2, double y1, double y2) {
-    return sqrt(pow(abs(x2 - x1), 2) + pow(abs(y2 - y1), 2));
+double distanta(pair<double, double> point1, pair<double, double> point2) {
+    return sqrt(pow(abs(point2.first - point1.first), 2) + pow(abs(point2.second - point1.second), 2));
 }
 
-void who_is_longest(map<pair<string, string>, vector<pair<double, double> > > &path) {  // 1-тип транспорта, 2-номер мартшрута, 3,4-координаты
-
-    map<string, pair<string, double> > maximum_path;
-    for (auto& i : path) {
-        pair<string, string> stops_pair;
-        auto& j = stops_pair;
-        auto cursor = istringstream(i.first.second);         // прекращает строку в поток
-
-        getline(cursor, j.first, '.');
-        getline(cursor, j.second, ' ');
-        cout<<j.first<<" "<<j.second<<"\n";
-        double S = 0;
-        auto l = i.second[0];
-        double x1 = l.first, x2 = l.second;
-        for (auto& l : i.second) {
-            if (x1 != l.first && x2 != l.second) {
-                S += distant(x1, x2, l.first, l.second);
-                x1 = l.first;
-                x2 = l.second;
-            }
+void longest_route(unordered_map<string, vector<pair<double, double> > > &routes, string &type) {
+    string max_number = " ";
+    double max_route = 0;
+    for (auto& [number, coordinates] : routes) {
+        double length = 0;
+        for (size_t i = 0; i < coordinates.size() - 1; i++) {
+            length += distanta(coordinates[i], coordinates[i + 1]);
         }
-
-//         auto o = maximum_path[j.second];
-//         if (S > o.second) {
-//             o.second = S;
-//             o.first = j.first;
-//             maximum_path[j.second] = {o.first, o.second};
-//             cout<<j.second;
-//         }
-//     }
-
-//     cout << "\nЗадание 3:\n";
-
-//     for (auto& i : maximum_path) {
-//         auto j = i.second;
-//         cout <<"Тип транспорта:" << i.first << "Маршрут: " << j.first << "\n" << "Длина: " << j.second << "\n";
-//     }
+        if (length > max_route) {
+            max_route = length;
+            max_number = number;
+        }
+    }
+    cout << type << " " << max_number << " с наибольшей длиной маршрута.\n";
 }
 
 int main() {
@@ -88,24 +63,13 @@ int main() {
     pugi::xml_parse_result result = document.load_file("trans.xml");
     cout << result.description() << "\n";                                            // проверка на нахождение файла
 
+// ЗАДАНИЕ 1
     map<pair<string, string>, int> number_of_stops;  // первое - вид транспорта, второе - номер маршрута, третье - количество станций
-
     auto set = document.child("dataset");
     for (auto station = set.child("transport_station"); station; station = station.next_sibling()) {
-        vector<string> numbers;
         string number = station.child("routes").first_child().value();
-        char symbol;                                            // символ, который разделяет разные маршруты
-        if (number.find(',') != string::npos)            // возвращает положение запятой, npos - конец строки
-            symbol = ',';
-        else symbol = '.';
-
-        auto cursor = istringstream(number);           //  поток
-        string buffer;                                   // временное хранилище для номера транспорта
-        while (getline(cursor, buffer, symbol))    // кладем в буфер значение взятое с "потока курсор" до "символа" и так каждый раз (символ разделяет номера маршрутов)
-            numbers.push_back(buffer);
-
+        vector<string> numbers = result_(number);
         string transport = station.child("type_of_vehicle").first_child().value();   // виды транспорта
-
         for (const auto &i : numbers)                    // считаем количество остановок каждого вида транспорта(и каждого маршрута)
             number_of_stops[{transport, i}]++;
     }
@@ -118,7 +82,7 @@ int main() {
         if (types_of_transport.find(now_transport) == types_of_transport.end()) {    // если в списке нет такого вида транспорта, тогда....
             max_count = {{now_transport, i.first.second}, i.second};    // пусть максимальное кол-во станций у этого транспорта
             types_of_transport.insert(now_transport);        // добавляем тип транспорта в список
-            for (const auto &j : number_of_stops) {         // проходимся по всем маршрутам
+            for (const auto& j : number_of_stops) {         // проходимся по всем маршрутам
                 if (j.first.first == now_transport && max_count.second < j.second) {  // если встречаем такой же вид транспорта, но у которого остановок больше
                     max_count.second = j.second;                                            // то заменяем значение максимального
                     max_count.first.second = j.first.second;
@@ -127,7 +91,9 @@ int main() {
             cout << max_count.first.first << " " << max_count.first.second << " имеет наибольшее количество остановок, равное " << max_count.second << ".\n";     // закончили прохождение по данному типу транспорта, можно вывести результат
         }
     }
+    types_of_transport.clear();
 
+// ЗАДАНИЕ 2
     map<string, int> street_stops;   // 1-название улицы, 2-количество остановок
     for (auto station = set.child("transport_station"); station; station = station.next_sibling()) {
         string street = station.child_value("location");
@@ -147,11 +113,31 @@ int main() {
         if (i.second > max_count_of_street_stops.second) max_count_of_street_stops = {i.first, i.second};
     cout << "\nЗадание 2:\n" << max_count_of_street_stops.first << " - именно тут чаще всего останавливается транспорт. Целых " << max_count_of_street_stops.second << " раз.\n";
 
-    map<pair<string, string>, vector<pair<double, double> > > coordinates;  // 1-название транспорта, 2-название маршрута, 3,4-координаты
-    for (auto type = set.child("type_of_vehicle"); type; type = type.next_sibling())
-        for (auto station = set.child("transport_station"); station; station = station.next_sibling()) {
-            coordinates[{type.child_value(), station.child_value()}].push_back({0, 0});
-            build_a_route(station, coordinates);
+
+// ЗАДАНИЕ 3
+    vector<string> numbers;
+    unordered_map<string, vector<pair<double, double> > > Routes;
+    string last_type = "";
+    string type = "";
+    cout << "\nЗадание 3:\n";
+    for (auto station = set.child("transport_station"); station; station = station.next_sibling()) {
+        last_type = type;
+        type = station.child("type_of_vehicle").first_child().value();
+        if (types_of_transport.find(type) == types_of_transport.end()) {
+            if (!types_of_transport.empty()) 
+                longest_route(Routes, last_type);
+            types_of_transport.insert(type);
+            Routes.clear();
         }
-    who_is_longest(coordinates);
+        else {
+            string routes = station.child("routes").first_child().value();
+            numbers = result_(routes);
+            string x_y = station.child("coordinates").first_child().value();
+            pair<double, double> coordinate = result_coordinates(x_y);
+            for (const auto& j : numbers) {
+                Routes[j].push_back(coordinate);
+            }
+        }
+    }
+    longest_route(Routes, last_type);
 }
