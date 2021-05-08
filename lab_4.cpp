@@ -23,11 +23,7 @@ bool any_of(iterator first, iterator last, const predicate& condition) {
 
 template<class iterator, class predicate>
 bool none_of(iterator first, iterator last, const predicate& condition) {
-    while (first != last) {
-        if (condition(*first)) return false;             // если что-то удовлетворило, то неверно
-        first++;
-    }
-    return true;                                               // иначе - верно
+    return (!all_of(first, last, condition));     
 }
 
 template<class iterator, class predicate>
@@ -44,8 +40,9 @@ bool one_of(iterator first, iterator last, const predicate& condition) {
 template<class iterator, class criterial>
 bool is_sorted(iterator first, iterator last, const criterial& condition) {  // диапазон задается началом и концом
     if (first == last) return true;
-    for (; first != last; first++)
-        if (!condition(*(first--), *first)) return false;
+    iterator prev = first;
+    for (first++; first != last; prev++, first++)
+        if (!condition(*prev, *first)) return false;
     return true;
 }
 
@@ -71,9 +68,12 @@ iterator find_not(iterator first, iterator last, const element& specified) {  //
 
 template<typename iterator, typename element>
 iterator find_backward(iterator first, iterator last, const element& specified) {  // диапазон задается началом и концом
-    for (; last != first; last--)  // находит первый с конца элемент == заданному
+    iterator first_last = last;
+    for (; last != first;)  {           // находит первый с конца элемент == заданному
+        last--;
         if (last == specified) return last;
-    return last;
+    }
+    return first_last;
 }
 
 template<typename iterator, typename criterial>
@@ -93,7 +93,7 @@ bool raven(int a, int b) {
 
 int main() {
     vector<int> M;
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 5; i++) {
         int b;
         cin >> b;
         M.push_back(b);
