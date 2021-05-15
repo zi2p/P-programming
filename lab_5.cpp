@@ -58,6 +58,9 @@ public:
         else throw out_of_range("haven't elements");
         if (first == last) working = false;   // пусто
     }
+    element& operator[] (int a) {    // обращение к элементу по индексу
+        return elements[a];
+    }
 };
 
 int main() {
