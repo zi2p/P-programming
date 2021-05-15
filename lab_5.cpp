@@ -9,7 +9,7 @@ private:
 public:
     bool working = false;
     int first = 0;
-    element* elements = (element*) malloc(sizeof(element) * 100);  // выделям место под наш буфер
+    element* elements = (element*) malloc(sizeof(element) * size);  // выделям место под наш буфер
     int last = 0;
     void size_kb(int s) {
         if (!working) size = s;  // если в данный момент буфер пуст, то можно изменить его размер
