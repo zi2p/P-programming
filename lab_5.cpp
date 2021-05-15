@@ -7,6 +7,7 @@ class KB {
 private:
     int size = 100;
 public:
+    KB(size_t capacity): size(capacity) {} // конструктор
     bool working = false;
     int first = 0;
     element* elements = (element*) malloc(sizeof(element) * size);  // выделям место под наш буфер
