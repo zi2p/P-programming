@@ -6,18 +6,31 @@ using namespace std;
 
 void put_front(vector<vector<unsigned short int> > h, const vector<vector<unsigned short int> > v, vector<vector<unsigned short int> > &f) {
     for (int i = 0; i < 3; i++) {
-        f[i][0] = v[0][3 - i];
-        f[i][1] = v[1][3 - i];
-        f[i][2] = v[2][3 - i];
-        f[i][3] = h[0][11 - i];
-        f[i][4] = h[1][11 - i];
-        f[i][5] = h[2][11 - i];
-        f[i][6] = v[2][11 - i];
-        f[i][7] = v[1][11 - i];
-        f[i][8] = v[0][11 - i];
-        f[i][9] = h[2][3 - i];
-        f[i][10] = h[1][3 - i];
-        f[i][11] = h[0][3 - i];
+//        f[i][0] = v[0][3 - i];
+//        f[i][1] = v[1][3 - i];
+//        f[i][2] = v[2][3 - i];
+//        f[i][3] = h[0][11 - i];
+//        f[i][4] = h[1][11 - i];
+//        f[i][5] = h[2][11 - i];
+//        f[i][6] = v[2][11 - i];
+//        f[i][7] = v[1][11 - i];
+//        f[i][8] = v[0][11 - i];
+//        f[i][9] = h[2][3 - i];
+//        f[i][10] = h[1][3 - i];
+//        f[i][11] = h[0][3 - i];
+        f[i][0] = h[2][3 - i];
+        f[i][1] = h[1][3 - i];
+        f[i][2] = h[0][3 - i];
+        f[i][3] = v[2][3 - i];
+        f[i][4] = v[1][3 - i];
+        f[i][5] = v[0][3 - i];
+        f[i][6] = h[0][11 - i];
+        f[i][7] = h[1][11 - i];
+        f[i][8] = h[2][11 - i];
+        f[i][9] = v[0][11 - i];
+        f[i][10] = v[1][11 - i];
+        f[i][11] = v[2][11 - i];
+
     }
 }
 
@@ -56,12 +69,12 @@ private:
             for (int i = 0; i < 3; i++) {                   // 1 - горизонтал, 2 - вертикал
                 for (int k = 3; k < 6; k++)
                     arr2[i][k] = front[k - 3][5 - i];
-                for (int k = 11; k >= 9; k--)
+                for (int k = 9; k <= 11; k++)
                     arr2[i][k] = front[11 - k][9 + i];
                 for (int k = 3; k < 6; k++)
                     arr1[i][k] = front[k - 3][2 - i];
-                for (int k = 11; k >= 9; k--)
-                    arr1[i][k] = front[11 - k][6 + i];
+                for (int k = 9; k <= 11; k++)
+                    arr1[i][k] = front[2 - k][6 + i];
             }
         }
 
@@ -71,10 +84,11 @@ private:
                     arr1[i][j] = vertical[j][2 - i];
                 for (int j = 6; j < 9; j++)
                     arr1[i][j] = vertical[8 - j][6 - i];
-                for (int j = 3; j < 6; j++)
-                    arr2[i][j] = vertical[5 - j][3 + i];
-                for (int j = 11; j >= 9; j--)
-                    arr2[i][j] = vertical[j - 9][11 - i];
+                put_front(arr1, vertical, arr2);
+//                for (int j = 3; j < 6; j++)
+//                    arr2[i][j] = vertical[5 - j][3 + i];
+//                for (int j = 11; j >= 9; j--)
+//                    arr2[i][j] = vertical[j - 9][11 - i];
             }
         }
 
@@ -83,11 +97,12 @@ private:
                 for (int j = 0; j < 3; j++)
                     arr1[i][j] = horizontal[2 - j][i];
                 for (int j = 6; j < 9; j++)
-                    arr1[i][j] = horizontal[j - 6][8 - i];
-                for (int j = 0; j < 3; j++)
-                    arr2[i][j] = horizontal[2 - j][3 + i];
-                for (int j = 8; j >= 6; j--)
-                    arr2[i][j] = horizontal[j - 6][11 - i];
+                    arr1[i][j] = horizontal[8 - j][6 + i];
+                put_front(horizontal, arr1, arr2);
+//                for (int j = 0; j < 3; j++)
+//                    arr2[i][j] = horizontal[2 - j][3 + i];
+//                for (int j = 8; j >= 6; j--)
+//                    arr2[i][j] = horizontal[j - 6][11 - i];
             }
         }
     }
@@ -183,13 +198,14 @@ int main() {
     put_front(h, v, f);
 
     cube.input_cube(h, v, f);
-    cube.write();
+//     cube.write();
 
-    cube.rotation("horis",1,"left");
-    cout << "=========\n\n";
-    cube.write();
+//     cube.rotation("horis",1,"left");
+//     cout << "=========\n\n";
+//     cube.write();
 
-    cube.rotation("vertic",0,"down");
-    cout << "=========\n\n";
-    cube.write();
+//     cube.rotation("vertic",0,"down");
+//     cout << "=========\n\n";
+//     cube.write();
 }
+
