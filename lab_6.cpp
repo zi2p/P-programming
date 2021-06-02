@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void put_front(vector<vector<unsigned short int> > h, const vector<vector<unsigned short int> > v, vector<vector<unsigned short int> > &f) {
+void put_front(vector<vector<unsigned short int> > h, const vector<vector<unsigned short int> > v, vector<vector<unsigned short int> > &f) { // подсчет фронта через вертикаль и горизонталь
     for (int i = 0; i < 3; i++) {
 //        f[i][0] = v[0][3 - i];
 //        f[i][1] = v[1][3 - i];
@@ -38,10 +38,10 @@ class Cube {
 private:
     vector<vector<unsigned short int> > horizontal;  // пояс горизонтальный [слой][грань.ячейка]
     vector<vector<unsigned short int> > vertical;       // пояс вертикальный [слой][грань.ячейка]
-    vector<vector<unsigned short int> > front;
+    vector<vector<unsigned short int> > front;          // пояс фронтовой   
 
-    static void rotation_plus(vector<vector<unsigned short int> > &arr, unsigned short int layer) {
-        unsigned short int buffer[3];
+    static void rotation_plus(vector<vector<unsigned short int> > &arr, unsigned short int layer) {   // поворот в положительную область
+        unsigned short int buffer[3]; 
         for (int i = 9; i < 12; i++) {
             buffer[i - 9] = arr[layer][i];
             arr[layer][i] = arr[layer][i - 3];
@@ -52,7 +52,7 @@ private:
             arr[layer][i] = buffer[i];
     }
 
-    static void rotation_minus(vector<vector<unsigned short int> > &arr, unsigned short int layer) {
+    static void rotation_minus(vector<vector<unsigned short int> > &arr, unsigned short int layer) {   // поворот в отрицательную область
         unsigned short int buffer[3];
         for (int i = 0; i < 3; i++) {
             buffer[i] = arr[layer][i];
@@ -64,7 +64,7 @@ private:
             arr[layer][i] = buffer[i - 9];
     }
 
-    void update(vector<vector<unsigned short int> > &arr1, vector<vector<unsigned short int> > &arr2) {
+    void update(vector<vector<unsigned short int> > &arr1, vector<vector<unsigned short int> > &arr2) {   // перезапись после поворота
         if (arr1 != front && arr2 != front) {
             for (int i = 0; i < 3; i++) {                   // 1 - горизонтал, 2 - вертикал
                 for (int k = 3; k < 6; k++)
@@ -123,7 +123,7 @@ public:
 
     void rotation(string orientation, unsigned short int layer, string side_of_rotation) {
         // ориентация(горизонтальное вращение или вертикальное)
-        // слой(1-верхний\левый, 2-средний, 3-нижний\правый)
+        // слой(1-верхний\левый\ближний, 2-средний, 3-нижний\правый\дальний)
         // в какую сторону(влево\вправо\вниз\вверх)
 
         if (orientation[0] == 'h' && side_of_rotation[0] == 'r') {
@@ -157,7 +157,7 @@ public:
         }
     }
 
-    void write() {
+    void write() {                                    // вывод куба
         for (int i = 0; i < 12; i++) {
             for (int j = 0; j < 3; j++)
                 cout << horizontal[j][i] << " ";
