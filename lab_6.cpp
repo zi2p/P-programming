@@ -4,20 +4,14 @@
 
 using namespace std;
 
-void put_front(vector<vector<unsigned short int> > h, const vector<vector<unsigned short int> > v, vector<vector<unsigned short int> > &f) { // подсчет фронта через вертикаль и горизонталь
+enum rotation {
+    horizontal_,
+    vertical_,
+    front_
+};
+
+void put_front(const vector<vector<unsigned short int> > &h, const vector<vector<unsigned short int> > &v, vector<vector<unsigned short int> > &f) {
     for (int i = 0; i < 3; i++) {
-//        f[i][0] = v[0][3 - i];
-//        f[i][1] = v[1][3 - i];
-//        f[i][2] = v[2][3 - i];
-//        f[i][3] = h[0][11 - i];
-//        f[i][4] = h[1][11 - i];
-//        f[i][5] = h[2][11 - i];
-//        f[i][6] = v[2][11 - i];
-//        f[i][7] = v[1][11 - i];
-//        f[i][8] = v[0][11 - i];
-//        f[i][9] = h[2][3 - i];
-//        f[i][10] = h[1][3 - i];
-//        f[i][11] = h[0][3 - i];
         f[i][0] = h[2][3 - i];
         f[i][1] = h[1][3 - i];
         f[i][2] = h[0][3 - i];
@@ -30,7 +24,6 @@ void put_front(vector<vector<unsigned short int> > h, const vector<vector<unsign
         f[i][9] = v[0][11 - i];
         f[i][10] = v[1][11 - i];
         f[i][11] = v[2][11 - i];
-
     }
 }
 
@@ -38,147 +31,140 @@ class Cube {
 private:
     vector<vector<unsigned short int> > horizontal;  // пояс горизонтальный [слой][грань.ячейка]
     vector<vector<unsigned short int> > vertical;       // пояс вертикальный [слой][грань.ячейка]
-    vector<vector<unsigned short int> > front;          // пояс фронтовой   
+    vector<vector<unsigned short int> > front;
 
-    static void rotation_plus(vector<vector<unsigned short int> > &arr, unsigned short int layer) {   // поворот в положительную область
-        unsigned short int buffer[3]; 
+    static void rotation_plus(vector<unsigned short int> &arr) {
+        unsigned short int buffer[3];
         for (int i = 9; i < 12; i++) {
-            buffer[i - 9] = arr[layer][i];
-            arr[layer][i] = arr[layer][i - 3];
+            buffer[i - 9] = arr[i];
+            arr[i] = arr[i - 3];
         }
         for (int i = 8; i > 2; i--)
-            arr[layer][i] = arr[layer][i - 3];
+            arr[i] = arr[i - 3];
         for (int i = 0; i < 3; i++)
-            arr[layer][i] = buffer[i];
+            arr[i] = buffer[i];
     }
 
-    static void rotation_minus(vector<vector<unsigned short int> > &arr, unsigned short int layer) {   // поворот в отрицательную область
+    static void rotation_minus(vector<unsigned short int> &arr) {
         unsigned short int buffer[3];
         for (int i = 0; i < 3; i++) {
-            buffer[i] = arr[layer][i];
-            arr[layer][i] = arr[layer][i + 3];
+            buffer[i] = arr[i];
+            arr[i] = arr[i + 3];
         }
         for (int i = 3; i < 9; i++)
-            arr[layer][i] = arr[layer][i + 3];
+            arr[i] = arr[i + 3];
         for (int i = 9; i < 12; i++)
-            arr[layer][i] = buffer[i - 9];
+            arr[i] = buffer[i - 9];
     }
 
-    void update(vector<vector<unsigned short int> > &arr1, vector<vector<unsigned short int> > &arr2) {   // перезапись после поворота
-        if (arr1 != front && arr2 != front) {
-            for (int i = 0; i < 3; i++) {                   // 1 - горизонтал, 2 - вертикал
-                for (int k = 3; k < 6; k++)
-                    arr2[i][k] = front[k - 3][5 - i];
-                for (int k = 9; k <= 11; k++)
-                    arr2[i][k] = front[11 - k][9 + i];
-                for (int k = 3; k < 6; k++)
-                    arr1[i][k] = front[k - 3][2 - i];
-                for (int k = 9; k <= 11; k++)
-                    arr1[i][k] = front[2 - k][6 + i];
-            }
-        }
-
-        if (arr1 != vertical && arr2 != vertical) {
-            for (int i = 0; i < 3; i++) {                        // 1 - горизонт, 2 - фронт
+    void update_vertical(vector<vector<unsigned short int> > &h, vector<vector<unsigned short int> > &f) {
+            for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++)
-                    arr1[i][j] = vertical[j][2 - i];
+                    h[i][j] = vertical[j][2 - i];
                 for (int j = 6; j < 9; j++)
-                    arr1[i][j] = vertical[8 - j][6 - i];
-                put_front(arr1, vertical, arr2);
-//                for (int j = 3; j < 6; j++)
-//                    arr2[i][j] = vertical[5 - j][3 + i];
-//                for (int j = 11; j >= 9; j--)
-//                    arr2[i][j] = vertical[j - 9][11 - i];
+                    h[i][j] = vertical[8 - j][6 - i];
+                put_front(h, vertical, f);
             }
-        }
+    }
 
-        if (arr1 != horizontal && arr2 != horizontal) {
-            for (int i = 0; i < 3; i++) {                       // 1 - вертикал, 2 - фронт
-                for (int j = 0; j < 3; j++)
-                    arr1[i][j] = horizontal[2 - j][i];
-                for (int j = 6; j < 9; j++)
-                    arr1[i][j] = horizontal[8 - j][6 + i];
-                put_front(horizontal, arr1, arr2);
-//                for (int j = 0; j < 3; j++)
-//                    arr2[i][j] = horizontal[2 - j][3 + i];
-//                for (int j = 8; j >= 6; j--)
-//                    arr2[i][j] = horizontal[j - 6][11 - i];
+    void update_front(vector<vector<unsigned short int> > &h, vector<vector<unsigned short int> > &v) {
+        for (int i = 0; i < 3; i++) {
+            for (int k = 3; k < 6; k++)
+                v[i][k] = front[k - 3][5 - i];
+            for (int k = 9; k <= 11; k++)
+                v[i][k] = front[11 - k][9 + i];
+            for (int k = 3; k < 6; k++)
+                h[i][k] = front[k - 3][2 - i];
+            for (int k = 9; k <= 11; k++)
+                h[i][k] = front[2 - k][6 + i];
             }
+    }
+
+    void update_horizomtal(vector<vector<unsigned short int> > &v, vector<vector<unsigned short int> > &f) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++)
+                v[i][j] = horizontal[2 - j][i];
+            for (int j = 6; j < 9; j++)
+                v[i][j] = horizontal[8 - j][6 + i];
+            put_front(horizontal, v, f);
         }
     }
 
 public:
 
-    void input_cube(vector<vector<unsigned short int> > arr_h, vector<vector<unsigned short int> > arr_v, vector<vector<unsigned short int> > arr_f) {  // ввод куба
-        horizontal.resize(3, vector<unsigned short int>(12));
-        vertical.resize(3, vector<unsigned short int>(12));
-        front.resize(3, vector<unsigned short int>(12));
-        for (int i = 0; i < 3; i++)
-            for (int j = 0; j < 12; j++) {
-                horizontal[i][j] = arr_h[i][j];
-                vertical[i][j] = arr_v[i][j];
-                front[i][j] = arr_f[i][j];
-            }
-    }
+    Cube(const vector<vector<unsigned short int>>& arr_h, const vector<vector<unsigned short int>>& arr_v, const vector<vector<unsigned short int>> & arr_f) :
+        horizontal(arr_h),
+        vertical(arr_v),
+        front(arr_f) {}
 
-    void rotation(string orientation, unsigned short int layer, string side_of_rotation) {
+    void rotation(rotation orientation, unsigned short int layer, string side_of_rotation) {
         // ориентация(горизонтальное вращение или вертикальное)
-        // слой(1-верхний\левый\ближний, 2-средний, 3-нижний\правый\дальний)
+        // слой(1-верхний\левый, 2-средний, 3-нижний\правый)
         // в какую сторону(влево\вправо\вниз\вверх)
 
-        if (orientation[0] == 'h' && side_of_rotation[0] == 'r') {
-            rotation_plus(horizontal, layer);
-            update(vertical, front);   // какие данные нужно обновить после поворота
+        if (orientation == horizontal_ && side_of_rotation[0] == 'r') {
+            rotation_plus(horizontal[layer]);
+            update_horizomtal(vertical, front);   // какие данные нужно обновить после поворота
         }
 
-        if (orientation[0] == 'h' && side_of_rotation[0] == 'l') {
-            rotation_minus(horizontal, layer);
-            update(vertical, front);
+        if (orientation == horizontal_ && side_of_rotation[0] == 'l') {
+            rotation_minus(horizontal[layer]);
+            update_horizomtal(vertical, front);
         }
 
-        if (orientation[0] == 'v' && side_of_rotation[0] == 'd') {
-            rotation_minus(vertical, layer);
-            update(horizontal, front);
+        if (orientation == vertical_ && side_of_rotation[0] == 'd') {
+            rotation_minus(vertical[layer]);
+            update_vertical(horizontal, front);
         }
 
-        if (orientation[0] == 'v' && side_of_rotation[0] == 'u') {
-            rotation_plus(vertical, layer);
-            update(horizontal, front);
+        if (orientation == vertical_ && side_of_rotation[0] == 'u') {
+            rotation_plus(vertical[layer]);
+            update_vertical(horizontal, front);
         }
 
-        if (orientation[0] == 'f' && side_of_rotation[0] == 'r') {
-            rotation_plus(front, layer);
-            update(horizontal, vertical);
+        if (orientation == front_ && side_of_rotation[0] == 'r') {
+            rotation_plus(front[layer]);
+            update_front(horizontal, vertical);
         }
 
-        if (orientation[0] == 'f' && side_of_rotation[0] == 'l') {
-            rotation_minus(front, layer);
-            update(horizontal, vertical);
+        if (orientation == front_ && side_of_rotation[0] == 'l') {
+            rotation_minus(front[layer]);
+            update_front(horizontal, vertical);
         }
     }
 
-    void write() {                                    // вывод куба
-        for (int i = 0; i < 12; i++) {
-            for (int j = 0; j < 3; j++)
-                cout << horizontal[j][i] << " ";
-            cout << "\n\n";
-        }
+    friend std::ostream& operator<<(std::ostream &out, const Cube &p);
 
-        for (int i = 0; i < 12; i++) {
-            if ((i >= 3 && i < 6) || (i >= 9 && i < 12)) {
-                for (int j = 0; j < 3; j++)
-                    cout << vertical[j][i] << " ";
-                cout << "\n\n";
+};
+
+std::ostream &operator<<(std::ostream &out, const Cube &cube) {                        // перегрузка оператора
+    for (int i = 0; i < 12; i++) {
+        for (int j = 0; j < 3; j++)
+            cout << cube.horizontal[j][i] << " ";
+        cout << "\n";
+        if ((i + 1) % 3 == 0) {
+            cout << "-----------\n";
+        }
+    }
+    cout << "--------\n";
+
+    for (int i = 0; i < 12; i++) {
+        if ((i >= 3 && i < 6) || (i >= 9 && i < 12)) {
+            for (int j = 0; j < 3; j++)
+                cout << cube.vertical[j][i] << " ";
+            cout << "\n";
+            if ((i + 1) % 3 == 0) {
+                cout << "-----------\n";
             }
         }
     }
-};
+    return cout << "---------\n";
+}
 
 int main() {
 
     ifstream in("1.in");
     system("chcp 65001");
-    Cube cube;
     vector<vector<unsigned short int> > h(3, vector<unsigned short int>(12));
     vector<vector<unsigned short int> > v(3, vector<unsigned short int>(12));
     vector<vector<unsigned short int> > f(3, vector<unsigned short int>(12));
@@ -196,16 +182,27 @@ int main() {
             in >> v[i][j];
 
     put_front(h, v, f);
+    Cube cube(h, v, f);
+    cout << cube;
 
-    cube.input_cube(h, v, f);
-//     cube.write();
+    cube.rotation(horizontal_,1,"left");
+    cout << "=========\n\n";
+    cout << cube;
 
-//     cube.rotation("horis",1,"left");
-//     cout << "=========\n\n";
-//     cube.write();
+    cube.rotation(vertical_, 0, "down");
+    cout << "=========\n\n";
+    cout << cube;
 
-//     cube.rotation("vertic",0,"down");
-//     cout << "=========\n\n";
-//     cube.write();
+    cout << "Ведите, какой Вы хотите поворот:\n Сначала введите какое хоттите вращение, затем, слой, затем, в какую сторону вращать.\n";
+
+    string orientation, side;
+    unsigned short int layer;
+    // ориентация(горизонтальное вращение или вертикальное)
+    // слой(1-верхний\левый, 2-средний, 3-нижний\правый)
+    // в какую сторону(влево\вправо\вниз\вверх)
+    cin >> orientation >> layer >> side;
+    if (orientation[0] == 'h') cube.rotation(horizontal_, layer, side);
+    else if (orientation[0] == 'v') cube.rotation(vertical_, layer, side);
+    else cube.rotation(front_, layer, side);
+
 }
-
