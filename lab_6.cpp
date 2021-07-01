@@ -62,7 +62,7 @@ private:
                 for (int j = 0; j < 3; j++)
                     h[i][j] = vertical[j][2 - i];
                 for (int j = 6; j < 9; j++)
-                    h[i][j] = vertical[8 - j][6 - i];
+                    h[i][j] = vertical[8 - j][6 + i];
                 put_front(h, vertical, f);
             }
     }
